@@ -1,10 +1,8 @@
-from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 import time
 import json
-import pandas as pd
+import sys
 from datetime import datetime
-import math
 import os
 from pathlib import Path
 from selenium.webdriver.common.keys import Keys
@@ -23,15 +21,22 @@ chrome_options.add_experimental_option("detach", True)
 #chrome_options.add_argument('--blink-settings=imagesEnabled=false')
 #Unfortunately if you don't load images it breaks the whole site
 
-start = datetime.now()
-print(f'the start time was {start}')
+#directory = Path.cwd()
+#chromedriver = str((directory / '/public/python/chromedriver_win32/chromedriver.exe').resolve()) Good if we were running it from python not Node
 
-directory = Path.cwd()
-chromedriver = str((directory / 'chromedriver_win32/chromedriver.exe').resolve())
+chromedriver = str(sys.argv[3])
+
+leagueFormat = sys.argv[1]
+numPlayers = int(sys.argv[2])
+
+if (leagueFormat == 'ppr'):
+	leagueFormat = 3
+else:
+	leagueFormat = 1
 
 driver = webdriver.Chrome(chromedriver, options = chrome_options)
 
-driver.get("https://fantasy.espn.com/football/players/projections?leagueFormatId=1")
+driver.get(f"https://fantasy.espn.com/football/players/projections?leagueFormatId={leagueFormat}")
 
 #need to reset player and xpath every 50 players as we perform pagination and move to the next page
 
@@ -41,7 +46,7 @@ pg = 1
 
 res = []
 
-for i in range(300):
+for i in range(numPlayers):
 
 	player = {}
 
@@ -51,7 +56,7 @@ for i in range(300):
 
 	name = driver.find_element_by_xpath(f'//*[@id="fitt-analytics"]/div/div[5]/div[2]/div[3]/div/div/div/div/div[{c}]/div/div[1]/div/div/div[2]/table/tbody/tr/td[2]/div/div/div[2]/div[1]/span/a').text
 
-	print(name)
+	#print(name)
 
 	player['Name'] = name
 
@@ -120,6 +125,9 @@ driver.close()
 driver.quit()
 
 response = json.dumps(res, indent=2)
+
+print(response)
+sys.stdout.flush()
 
 
 
